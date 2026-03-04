@@ -47,7 +47,7 @@
         <td style="white-space: nowrap;">
           <a class="btn small" href="/parcels/<%= p.parcel_id %>">View</a>
           <% if(p.status==='Pending'){ %>
-            <form action="/admin/parcel/cancel" method="post" style="display:inline-block; background:none; padding:0; border:none; margin:0 4px;">
+            <form id="cancelForm-<%= p.parcel_id %>" action="/admin/parcel/cancel" method="post" style="display:inline-block; background:none; padding:0; border:none; margin:0 4px;">
               <input type="hidden" name="parcel_id" value="<%= p.parcel_id %>" />
               <button type="button" class="btn danger small" onclick="confirmCancel(<%= p.parcel_id %>);" style="margin:0;">Cancel</button>
             </form>

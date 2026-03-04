@@ -2,6 +2,16 @@
 
 <h2>My Payments</h2>
 
+<%
+  const methodLabels = {
+    bank: 'Bank Transfer',
+    wallet: 'Mobile Wallet',
+    card: 'Credit Card',
+    online: 'Online Payment',
+    COD: 'Cash on Delivery'
+  };
+%>
+
 <% if (typeof error !== 'undefined' && error) { %>
   <p style="color: red;"><%= error %></p>
 <% } %>
@@ -15,7 +25,8 @@
         <th>Payment ID</th>
         <th>Tracking</th>
         <th>Receiver</th>
-        <th>Cost</th>
+        <th>Amount</th>
+        <th>Method</th>
         <th>Status</th>
         <th>Parcel Status</th>
         <th>Date</th>
@@ -27,9 +38,10 @@
           <td><%= p.payment_id %></td>
           <td><%= p.tracking_number %></td>
           <td><%= p.receiver_name %></td>
-          <td><%= p.shipping_cost %></td>
+          <td>฿<%= Number(p.amount ?? p.shipping_cost ?? 0).toFixed(2) %></td>
+          <td><%= methodLabels[p.payment_method] || p.payment_method || '-' %></td>
           <td><%= p.payment_status %></td>
-          <td><%= p.parcel_status %></td>
+          <td><%= p.parcel_status || '-' %></td>
           <td><%= p.payment_date ? new Date(p.payment_date).toLocaleDateString() : '-' %></td>
         </tr>
       <% }) %>
