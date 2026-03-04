@@ -1,0 +1,201 @@
+<%- include('layout-top') %>
+
+<h2>Parcel Details</h2>
+<div class="parcel-details">
+  <p><strong>Tracking Number:</strong> <%= parcel.tracking_number %></p>
+  <p><strong>Receiver:</strong> <%= parcel.receiver_name %> (<%= parcel.receiver_phone %>)</p>
+  <p><strong>Address:</strong> <%= parcel.receiver_address %></p>
+  
+  <div class="parcel-specs">
+    <p><strong>Weight:</strong> <span class="spec-value"><%= parcel.weight %> kg</span></p>
+    <p><strong>Size:</strong> <span class="size-badge size-<%= parcel.size.toLowerCase() %>"><%= parcel.size %></span></p>
+  </div>
+  
+  <p><strong>Shipping Cost:</strong> ฿<%= parcel.shipping_cost %></p>
+  <p><strong>Status:</strong> <% let statusClass=''; switch(parcel.status){
+       case 'Pending': statusClass='status-pending'; break;
+       case 'Ready to Ship': statusClass='status-ready'; break;
+       case 'Paid': statusClass='status-paid'; break;
+       case 'Shipped': statusClass='status-shipped'; break;
+       case 'Out for Delivery': statusClass='status-out-for-delivery'; break;
+       case 'Delivered': statusClass='status-delivered'; break;
+       case 'Cancelled': statusClass='status-cancel'; break;
+     } %>
+  <span class="<%= statusClass %>"><%= parcel.status %></span></p>
+  
+  <% if (parcel.status === 'Delivered' && parcel.delivered_at) { %>
+    <p><strong>Delivered On:</strong> <span style="color: #065F46; font-weight: 600;"><%= new Date(parcel.delivered_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) %></span></p>
+  <% } %>
+</div>
+
+<h3>Payment</h3>
+<% if (payment) { %>
+  <p>Amount: ฿<%= payment.amount %></p>
+  <p>Status: <%= payment.payment_status %></p>
+<% } else { %>
+  <p>No payment recorded.</p>
+  <% if (parcel.status === 'Pending' && (!user || user.role !== 'admin')) { %>
+    <p><a class="btn" href="/parcels/<%= parcel.parcel_id %>/pay">Pay Now</a></p>
+  <% } %>
+<% } %>
+<% if ((parcel.status === 'Pending' || parcel.status === 'Paid') && (!user || user.role !== 'admin')) { %>
+  <form action="/parcels/<%= parcel.parcel_id %>/cancel" method="post" id="cancelForm-<%= parcel.parcel_id %>" style="margin-top: 20px; display: inline; background: transparent; padding: 0; border: none;">
+    <button type="button" onclick="confirmCancel(<%= parcel.parcel_id %>);">Cancel Parcel</button>
+  </form>
+<% } %>
+
+<p style="margin-top: 30px;"><a href="<%= userRole === 'admin' ? '/admin/dashboard' : '/parcels/dashboard' %>">← Back to Dashboard</a></p>
+
+<style>
+  .parcel-details {
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(239, 246, 255, 0.97));
+    border: 1px solid #DBEAFE;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  }
+
+  .parcel-details p {
+    margin: 12px 0;
+    font-size: 1rem;
+    color: #1E293B;
+  }
+
+  .parcel-specs {
+    background: #E0F2FE;
+    border-left: 4px solid #3B82F6;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+
+  .spec-value {
+    font-weight: 700;
+    color: #1E3A8A;
+  }
+
+  .size-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+  }
+
+  .size-s {
+    background-color: #D1FAE5;
+    color: #065F46;
+  }
+
+  .size-m {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+  }
+
+  .size-l {
+    background-color: #BFDBFE;
+    color: #1E3A8A;
+  }
+
+  .size-xl {
+    background-color: #CFFAFE;
+    color: #0369A1;
+  }
+
+  .size-xxl {
+    background-color: #FCD34D;
+    color: #78350F;
+  }
+
+  .size-xxxl {
+    background-color: #FBCFE8;
+    color: #9D174D;
+  }
+
+  .status-pending {
+    background: #FEF3C7;
+    color: #78350F;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .status-paid,
+  .status-ready-to-ship {
+    background: #BFDBFE;
+    color: #1E40AF;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .status-shipped {
+    background: #CFFAFE;
+    color: #0369A1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .status-out-for-delivery {
+    background: #FEDBA8;
+    color: #92400E;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .status-delivered {
+    background: #D1FAE5;
+    color: #065F46;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .status-cancelled {
+    background: #FEE2E2;
+    color: #7F1D1D;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  form[id^="cancelForm-"] {
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    display: inline !important;
+    box-shadow: none !important;
+  }
+
+  form[id^="cancelForm-"] button {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    margin-top: 20px;
+  }
+
+  form[id^="cancelForm-"] button:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+  }
+
+  form[id^="cancelForm-"] button:active {
+    transform: translateY(0);
+  }
+</style>
+
+<%- include('layout-bottom') %>
+

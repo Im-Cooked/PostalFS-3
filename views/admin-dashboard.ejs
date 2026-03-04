@@ -1,0 +1,162 @@
+<%- include('layout-top') %>
+
+<h2>Admin Dashboard</h2>
+<p>
+  <a href="/admin/report" class="btn">View Report</a>
+  <button class="btn" style="background-color: #DC2626; margin-left: 10px;" onclick="confirmClearData()">Clear All Data</button>
+</p>
+
+<h3>All Parcels</h3>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Tracking</th>
+      <th>Sender</th>
+      <th>Receiver</th>
+      <th>Cost</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% parcels.forEach(p => { %>
+      <tr>
+        <td><%= p.parcel_id %></td>
+        <td><%= p.tracking_number %></td>
+        <td><%= p.customer_name || p.sender_id %></td>
+        <td>
+          <%= p.receiver_name %>
+          <% if (p.receiver_phone) { %><br><small class="sub-text"><strong>Phone:</strong> <%= p.receiver_phone %></small><% } %>
+          <% if (p.receiver_address) { %><br><small class="sub-text"><strong>Address:</strong> <%= p.receiver_address %></small><% } %>
+        </td>
+        <td><%= Number(p.shipping_cost).toFixed(2) %></td>
+        <td>
+          <% let badgeClass=''; let text=p.status; switch(p.status){
+               case 'Pending': badgeClass='status-pending'; break;
+               case 'Ready to Ship': badgeClass='status-ready'; break;
+               case 'Paid': badgeClass='status-paid'; break;
+               case 'Shipped': badgeClass='status-shipped'; break;
+               case 'Out for Delivery': badgeClass='status-out-for-delivery'; break;
+               case 'Delivered': badgeClass='status-delivered'; break;
+               case 'Cancelled': badgeClass='status-cancel'; break;
+             }
+          %>
+          <span class="<%= badgeClass %>"><%= text %></span>
+        </td>
+        <td style="white-space: nowrap;">
+          <a class="btn small" href="/parcels/<%= p.parcel_id %>">View</a>
+          <% if(p.status==='Pending'){ %>
+            <form action="/admin/parcel/cancel" method="post" style="display:inline-block; background:none; padding:0; border:none; margin:0 4px;">
+              <input type="hidden" name="parcel_id" value="<%= p.parcel_id %>" />
+              <button type="button" class="btn danger small" onclick="confirmCancel(<%= p.parcel_id %>);" style="margin:0;">Cancel</button>
+            </form>
+          <% } else if(p.status==='Paid'){ %>
+            <form action="/admin/parcel/ship" method="post" style="display:inline-block; background:none; padding:0; border:none; margin:0 4px;">
+              <input type="hidden" name="parcel_id" value="<%= p.parcel_id %>" />
+              <button type="submit" class="btn small" style="margin:0;">Mark as Shipped</button>
+            </form>
+          <% } else if(p.status==='Ready to Ship'){ %>
+            <form action="/admin/parcel/start-delivery" method="post" style="display:inline-block; background:none; padding:0; border:none; margin:0 4px;">
+              <input type="hidden" name="parcel_id" value="<%= p.parcel_id %>" />
+              <button type="submit" class="btn small" style="margin:0;">Start Delivery</button>
+            </form>
+          <% } else if(p.status==='Out for Delivery'){ %>
+            <form action="/admin/parcel/deliver" method="post" style="display:inline-block; background:none; padding:0; border:none; margin:0 4px;">
+              <input type="hidden" name="parcel_id" value="<%= p.parcel_id %>" />
+              <button type="submit" class="btn success small" style="margin:0;">Mark as Delivered</button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<h3>All Payments</h3>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Parcel ID</th>
+      <th>Amount</th>
+      <th>Method</th>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% payments.forEach(p => { %>
+      <tr>
+        <td><%= p.payment_id %></td>
+        <td><%= p.parcel_id %></td>
+        <td><%= Number(p.amount || 0).toFixed(2) %></td>
+        <td><%= p.payment_method || '-' %></td>
+        <td><%= p.payment_date ? p.payment_date.split('T')[0] : '-' %></td>
+        <td>
+          <% let payClass=''; switch(p.payment_status){ case 'Pending': payClass='status-pending'; break; case 'Paid': payClass='status-paid'; break; case 'Cancelled': payClass='status-cancel'; break; default: payClass=''; break; } %>
+          <span class="<%= payClass %>"><%= p.payment_status %></span>
+
+          <% if (p.payment_status === 'Pending') { %>
+            <div style="display:inline-block; margin-left:8px;">
+              <form action="/admin/payment/<%= p.payment_id %>/approve" method="post" style="display:inline;">
+                <button type="submit" class="btn success small">Approve Payment</button>
+              </form>
+              <form action="/admin/payment/<%= p.payment_id %>/reject" method="post" style="display:inline; margin-left:6px;">
+                <button type="submit" class="btn danger small">Reject Payment</button>
+              </form>
+            </div>
+          <% } %>
+        </td>
+        <td><!-- action column, empty for now --></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<script>
+function confirmClearData() {
+  Swal.fire({
+    title: 'Clear All Data?',
+    html: '<p style="color: #DC2626; font-weight: bold;">⚠️ WARNING: This will permanently delete ALL parcels and payments.</p><p>Customers will be preserved. This action cannot be undone.</p>',
+    icon: 'warning',
+    confirmButtonColor: '#DC2626',
+    cancelButtonColor: '#3b82f6',
+    confirmButtonText: 'Yes, clear all data',
+    cancelButtonText: 'Cancel',
+    showCancelButton: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Send POST request to clear data
+      fetch('/admin/clear-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'All parcel and payment data has been cleared. Customers preserved.',
+          icon: 'success',
+          confirmButtonColor: '#3B82F6'
+        }).then(() => {
+          location.reload();
+        });
+      })
+      .catch(error => {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to clear data: ' + error.message,
+          icon: 'error',
+          confirmButtonColor: '#DC2626'
+        });
+      });
+    }
+  });
+}
+</script>
+
+<%- include('layout-bottom') %>

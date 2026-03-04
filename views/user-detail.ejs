@@ -1,0 +1,87 @@
+<%- include('layout-top') %>
+
+<div class="container">
+  <div class="page-head">
+    <h2>Customer Detail</h2>
+    <a href="/admin/report" class="btn" style="float: right;">Back to Report</a>
+  </div>
+
+  <% if (user) { %>
+    <section style="margin-bottom: 30px;">
+      <h3><%= user.customer_name %></h3>
+      <table style="width: 100%; margin-bottom: 20px;">
+        <tr>
+          <td><strong>Customer ID:</strong></td>
+          <td><%= user.customer_id %></td>
+        </tr>
+        <tr>
+          <td><strong>Email:</strong></td>
+          <td><%= user.email || '-' %></td>
+        </tr>
+        <tr>
+          <td><strong>Phone:</strong></td>
+          <td><%= user.phone || '-' %></td>
+        </tr>
+        <tr>
+          <td><strong>Address:</strong></td>
+          <td><%= user.address || '-' %></td>
+        </tr>
+        <tr>
+          <td><strong>Registered:</strong></td>
+          <td><%= user.created_at ? user.created_at.split('T')[0] : '-' %></td>
+        </tr>
+      </table>
+    </section>
+
+    <% if (Array.isArray(parcels) && parcels.length > 0) { %>
+      <section>
+        <h3>Parcels Sent by This Customer</h3>
+        <table style="width: 100%;">
+          <thead>
+            <tr class="table-header-red">
+              <th>ID</th>
+              <th>Tracking</th>
+              <th>Receiver</th>
+              <th>Cost</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% parcels.forEach(p => { %>
+              <tr>
+                <td><%= p.parcel_id %></td>
+                <td><%= p.tracking_number || '-' %></td>
+                <td><%= p.receiver_name %></td>
+                <td>฿<%= Number(p.shipping_cost || 0).toFixed(2) %></td>
+                <td>
+                  <% let badgeClass=''; switch(p.status){
+                       case 'Pending': badgeClass='status-pending'; break;
+                       case 'Ready to Ship': badgeClass='status-ready'; break;
+                       case 'Paid': badgeClass='status-paid'; break;
+                       case 'Shipped': badgeClass='status-shipped'; break;
+                       case 'Out for Delivery': badgeClass='status-out-for-delivery'; break;
+                       case 'Delivered': badgeClass='status-delivered'; break;
+                       case 'Cancelled': badgeClass='status-cancel'; break;
+                     } %>
+                  <span class="<%= badgeClass %>"><%= p.status %></span>
+                </td>
+                <td><%= p.created_at ? p.created_at.split('T')[0] : '-' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </section>
+    <% } else { %>
+      <div style="padding: 20px; background: #f5f5f5; border-radius: 8px;">
+        <p>This customer has not sent any parcels yet.</p>
+      </div>
+    <% } %>
+  <% } else { %>
+    <div style="padding: 20px; background: #f5f5f5; border-radius: 8px;">
+      <p>Customer not found.</p>
+    </div>
+  <% } %>
+</div>
+
+<%- include('layout-bottom') %>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Postal Delivery System</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* keep header minimal — navbar provides the full visual */
+      header {
+        display: flex;
+        align-items: center;
+        background: transparent;
+        color: #fff;
+        padding: 0; /* let navbar control height */
+        box-shadow: 0 6px 18px rgba(3, 10, 34, 0.06);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      /* hide any legacy H1 here (brand is inside navbar) */
+      header h1 { display: none; }
+      .nav { display: flex; align-items: center; gap: 12px; }
+      /* make the username readable on dark background */
+      .nav span { color: #E8F8FF; font-weight: 600; }
+      .nav a { background: transparent; color: #fff; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; border: 1px solid rgba(255,255,255,0.06); }
+      .nav a[href*="logout"] { background: rgba(220,38,38,0.95); color: #fff; border-color: rgba(220,38,38,0.25); }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrapper">
+    <header>
+      <%- include('partials/navbar') %>
+    </header>
+    <main>
+      <!-- navigation is rendered inside header -->

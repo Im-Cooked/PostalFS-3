@@ -1,0 +1,22 @@
+<%- include('layout-top') %>
+
+<h2>Register</h2>
+<form action="/register" method="post">
+  <% if (typeof error !== 'undefined') { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+  <label>Name</label>
+  <input type="text" name="customer_name" required />
+  <label>Email</label>
+  <input type="email" name="email" required />
+  <label>Password</label>
+  <input type="password" name="password" required />
+  <label>Phone</label>
+  <input type="text" name="phone" />
+  <label>Address</label>
+  <textarea name="address"></textarea>
+  <button type="submit">Register</button>
+  <p>Already have an account? <a href="/login">Login</a></p>
+</form>
+
+<%- include('layout-bottom') %>

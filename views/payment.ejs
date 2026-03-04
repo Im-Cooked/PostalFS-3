@@ -1,0 +1,94 @@
+<%- include('layout-top') %>
+
+<h2>Pay Parcel</h2>
+
+<div class="payment-container">
+  <div class="parcel-summary">
+    <p><strong>Tracking Number:</strong> <%= parcel.tracking_number %></p>
+    <p><strong>Shipping Cost:</strong> <%= parcel.shipping_cost %> ฿</p>
+  </div>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <div class="payment-methods">
+    <h3>Select Payment Method</h3>
+    <div class="methods-grid">
+      <% if (methods && methods.length > 0) { %>
+        <% methods.forEach(method => { %>
+          <div class="method-card" data-method="<%= method.id %>">
+            <div class="method-icon"><%= method.icon %></div>
+            <div class="method-name"><%= method.name %></div>
+            <button type="button" class="btn method-select-btn" onclick="selectMethod('<%= method.id %>')">
+              Select
+            </button>
+            <div class="qr-display" id="qr-<%= method.id %>" style="display:none; margin-top: 10px;">
+              <img src="<%= method.qrCode %>" alt="QR Code for <%= method.name %>" style="width: 120px; height: 120px;">
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p>No payment methods available.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="payment-form" id="payment-form" style="display:none; margin-top: 30px;">
+    <h3>Complete Payment</h3>
+    <form method="post" action="/parcels/<%= parcel.parcel_id %>/pay">
+      <div class="form-group">
+        <label>Selected Method:</label>
+        <input type="text" id="selected-method-display" readonly style="background: #f0f0f0;">
+      </div>
+      <input type="hidden" name="payment_method" id="payment_method">
+      
+      <div class="form-group">
+        <label>Amount (฿):</label>
+        <input type="number" name="amount" id="amount" step="0.01" value="<%= parcel.shipping_cost %>" readonly style="background: #f0f0f0;">
+      </div>
+      
+      <button type="submit" class="btn" style="background: #4CAF50;">Confirm Payment</button>
+      <button type="button" class="btn secondary" onclick="cancelSelection()">Cancel</button>
+    </form>
+  </div>
+
+  <p><a href="/parcels/<%= parcel.parcel_id %>">Back to Parcel</a></p>
+</div>
+
+<style>
+  .payment-container { max-width: 600px; margin: 20px auto; }
+  .parcel-summary { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+  .methods-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+  .method-card { border: 2px solid #ddd; border-radius: 8px; padding: 12px; text-align:center; }
+  .method-card.selected { border-color: #4CAF50; background:#f1f8f6 }
+  .method-icon { font-size: 28px; margin-bottom: 6px }
+  .method-name { font-weight:600; margin-bottom: 8px }
+  .form-group { margin: 10px 0 }
+  .error { color:#d32f2f; padding:8px; background:#ffebee; border-radius:4px }
+</style>
+
+<script>
+  function selectMethod(methodId){
+    document.querySelectorAll('.qr-display').forEach(el=>el.style.display='none');
+    document.querySelectorAll('.method-card').forEach(c=>c.classList.remove('selected'));
+    const card=document.querySelector(`[data-method="${methodId}"]`);
+    if(!card) return;
+    card.classList.add('selected');
+    const qr = document.getElementById('qr-'+methodId);
+    if(qr) qr.style.display='block';
+    document.getElementById('payment_method').value = methodId;
+    document.getElementById('selected-method-display').value = card.querySelector('.method-name').textContent;
+    document.getElementById('payment-form').style.display='block';
+    document.getElementById('payment-form').scrollIntoView({behavior:'smooth'});
+  }
+  function cancelSelection(){
+    document.querySelectorAll('.method-card').forEach(c=>c.classList.remove('selected'));
+    document.querySelectorAll('.qr-display').forEach(el=>el.style.display='none');
+    document.getElementById('payment-form').style.display='none';
+    document.getElementById('payment_method').value='';
+    document.getElementById('selected-method-display').value='';
+  }
+</script>
+
+<%- include('layout-bottom') %>

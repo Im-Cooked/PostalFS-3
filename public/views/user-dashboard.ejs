@@ -1,0 +1,173 @@
+<%- include("partials/layout-top", { title: "My Dashboard" }) %>
+
+<%
+  const data = summary || {};
+  const bills = Array.isArray(recentBills) ? recentBills : [];
+  const payments = Array.isArray(recentPayments) ? recentPayments : [];
+  const monthReports = Array.isArray(monthlyReport) ? monthlyReport : [];
+  const formatPercent = (value) => `${Number.isFinite(Number(value)) ? Number(value).toFixed(1) : "0.0"}%`;
+  const formatDueWindow = (start, end) => {
+    if (!start && !end) return "-";
+    if (start && end && start !== end) return `${start} -> ${end}`;
+    return start || end;
+  };
+%>
+
+<section class="card page-head">
+  <h2>User Dashboard</h2>
+  <p>Overview of your meters, bills, and recent payments.</p>
+  <div class="actions">
+    <a class="btn" href="<%= rolePath('/bills') %>">View All Bills</a>
+    <a class="btn secondary" href="<%= rolePath('/payments') %>">View All Payments</a>
+    <a class="btn secondary" href="#monthly-expense-report">Monthly Expense Report</a>
+  </div>
+</section>
+
+<% if (error) { %>
+  <section class="card">
+    <p class="muted"><%= error %></p>
+  </section>
+<% } %>
+
+<section class="split">
+  <article class="card">
+    <h3>Meters</h3>
+    <p><strong><%= data.metersCount || 0 %></strong></p>
+  </article>
+  <article class="card">
+    <h3>Total Bills</h3>
+    <p><strong><%= data.billsCount || 0 %></strong></p>
+  </article>
+  <article class="card">
+    <h3>Paid Bills</h3>
+    <p><strong><%= data.paidBillsCount || 0 %></strong></p>
+  </article>
+  <article class="card">
+    <h3>Unpaid / Overdue</h3>
+    <p><strong><%= data.unpaidBillsCount || 0 %></strong></p>
+    <p class="muted">Overdue: <%= data.overdueBillsCount || 0 %></p>
+  </article>
+  <article class="card">
+    <h3>Total Due</h3>
+    <p><strong><%= formatTHB(data.totalDue || 0) %></strong></p>
+  </article>
+</section>
+
+<section class="card">
+  <h3 id="monthly-expense-report">Monthly Expense Report</h3>
+  <% if (!monthReports.length) { %>
+    <div class="empty">No monthly expense data available.</div>
+  <% } else { %>
+    <div class="billing-report-wrap">
+      <table class="billing-report-table">
+        <thead>
+          <tr>
+            <th>Bill Month</th>
+            <th class="numeric">Total Bills</th>
+            <th class="numeric">Paid</th>
+            <th class="numeric">Unpaid</th>
+            <th class="numeric">Overdue</th>
+            <th class="numeric">Payments</th>
+            <th class="numeric">Total Amount (THB)</th>
+            <th class="numeric">Paid Amount (THB)</th>
+            <th class="numeric">Outstanding (THB)</th>
+            <th class="numeric">Avg Bill (THB)</th>
+            <th class="numeric">Paid / Collected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% monthReports.forEach((report) => { %>
+            <tr>
+              <td>
+                <%= report.monthLabel || report.monthKey || "-" %>
+                <span class="report-subline">Due: <%= formatDueWindow(report.dueWindowStart, report.dueWindowEnd) %></span>
+                <span class="report-subline">Range: <%= formatTHB(report.minBillAmount) %> - <%= formatTHB(report.maxBillAmount) %></span>
+              </td>
+              <td class="numeric"><%= report.billsCount || 0 %></td>
+              <td class="numeric"><%= report.paidBillsCount || 0 %></td>
+              <td class="numeric"><%= report.unpaidBillsCount || 0 %></td>
+              <td class="numeric"><%= report.overdueBillsCount || 0 %></td>
+              <td class="numeric"><%= report.paymentsCount || 0 %></td>
+              <td class="numeric"><%= formatTHB(report.totalAmount) %></td>
+              <td class="numeric"><%= formatTHB(report.paidAmount) %></td>
+              <td class="numeric"><%= formatTHB(report.outstandingAmount) %></td>
+              <td class="numeric"><%= formatTHB(report.avgBillAmount) %></td>
+              <td class="numeric"><%= formatPercent(report.paidRate) %> / <%= formatPercent(report.collectionRate) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<section class="card">
+  <h3>Recent Bills</h3>
+  <% if (!bills.length) { %>
+    <div class="empty">No bills found.</div>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Bill ID</th>
+          <th>Meter ID</th>
+          <th>Amount (THB)</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% bills.forEach((bill) => { %>
+          <% const paid = String(bill.status || "").toLowerCase() === "paid"; %>
+          <tr>
+            <td><%= bill.bill_id || "-" %></td>
+            <td><%= bill.meter_id || "-" %></td>
+            <td><%= formatTHB(bill.amount) %></td>
+            <td><%= bill.due_date || "-" %></td>
+            <td><%= bill.status || "-" %></td>
+            <td>
+              <% if (paid) { %>
+                <span class="muted">Paid</span>
+              <% } else { %>
+                <a class="btn" href="<%= rolePath('/pay-bill/' + bill.bill_id) %>">Pay Bill</a>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+
+<section class="card">
+  <h3>Recent Payments</h3>
+  <% if (!payments.length) { %>
+    <div class="empty">No payments found.</div>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Payment ID</th>
+          <th>Bill ID</th>
+          <th>Method</th>
+          <th>Date</th>
+          <th>Reference</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% payments.forEach((p) => { %>
+          <tr>
+            <td><%= p.payment_id || "-" %></td>
+            <td><%= p.bill_id || "-" %></td>
+            <td><%= p.payment_method || "-" %></td>
+            <td><%= p.payment_date || "-" %></td>
+            <td><%= p.transaction_ref || "-" %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+
+<%- include("partials/layout-bottom") %>

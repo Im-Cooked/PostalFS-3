@@ -1,0 +1,295 @@
+<%- include('layout-top') %>
+
+<div class="container">
+  <h2>สร้างพัสดุ</h2>
+
+  <form action="/parcels/create" method="post" id="createParcelForm" class="form-card">
+    <% if (typeof error !== 'undefined') { %>
+      <div class="error-box">
+        <strong>⚠️ ข้อผิดพลาด:</strong> <%= error %>
+      </div>
+    <% } %>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>ชื่อผู้รับ <span class="required">*</span></label>
+        <input type="text" name="receiver_name" required />
+      </div>
+
+      <div class="form-field">
+        <label>เบอร์โทรผู้รับ <span class="required">*</span></label>
+        <input type="text" name="receiver_phone" required />
+      </div>
+
+      <div class="form-field">
+        <label>บ้านเลขที่ <span class="required">*</span></label>
+        <input type="text" name="house_no" required />
+      </div>
+
+      <div class="form-field">
+        <label>หมู่</label>
+        <input type="text" name="moo" />
+      </div>
+
+      <div class="form-field">
+        <label>ซอย</label>
+        <input type="text" name="soi" />
+      </div>
+
+      <div class="form-field">
+        <label>ถนน</label>
+        <input type="text" name="road" />
+      </div>
+
+      <div class="form-field">
+        <label>ตำบล <span class="required">*</span></label>
+        <input type="text" name="subdistrict" required />
+      </div>
+
+      <div class="form-field">
+        <label>อำเภอ <span class="required">*</span></label>
+        <input type="text" name="district" required />
+      </div>
+
+      <div class="form-field">
+        <label>จังหวัด <span class="required">*</span></label>
+        <input type="text" name="province" required />
+      </div>
+
+      <div class="form-field">
+        <label>รหัสไปรษณีย์</label>
+        <input type="text" name="postal_code" />
+      </div>
+
+      <div class="form-field">
+        <label>น้ำหนัก (กิโลกรัม) <span class="required">*</span></label>
+        <input type="number"
+               name="weight"
+               id="weightInput"
+               min="0.1"
+               max="100"
+               step="0.1"
+               required />
+      </div>
+
+      <div class="form-field weight-info full-width">
+        <small id="weightFeedback" style="display: none; color: #DC2626; font-weight: 600;"></small>
+      </div>
+
+      <div class="form-field full-width button-group">
+        <a href="/dashboard" class="btn-cancel">ยกเลิก</a>
+        <button type="submit" class="btn-create">สร้างพัสดุ</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+// optional frontend validation for split address fields
+const createForm = document.getElementById('createParcelForm');
+if (createForm) {
+  createForm.addEventListener('submit', function(e) {
+    const house = createForm.house_no.value.trim();
+    const sub = createForm.subdistrict.value.trim();
+    const dist = createForm.district.value.trim();
+    const prov = createForm.province.value.trim();
+    if (!house || !sub || !dist || !prov) {
+      e.preventDefault();
+      const msg = 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน';
+      const errorBox = document.querySelector('.error-box');
+      if (errorBox) {
+        errorBox.innerHTML = '<strong>⚠️ ข้อผิดพลาด:</strong> ' + msg;
+      } else {
+        const div = document.createElement('div');
+        div.className = 'error-box';
+        div.innerHTML = '<strong>⚠️ ข้อผิดพลาด:</strong> ' + msg;
+        createForm.insertBefore(div, createForm.firstChild);
+      }
+    }
+  });
+}
+</script>
+
+<style>
+  .required {
+    color: #DC2626;
+  }
+
+  .error-box {
+    background: #FEE2E2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    color: #7F1D1D;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+
+  .weight-info {
+    margin-top: 8px;
+    margin-bottom: 20px;
+  }
+
+  .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .btn-create {
+    background-color: #3B82F6;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .btn-create:hover {
+    background-color: #2563EB;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-create:active {
+    transform: translateY(0);
+  }
+
+  .btn-create:disabled {
+    background-color: #93C5FD;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-cancel {
+    background-color: #E5E7EB;
+    color: #1F2937;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #D1D5DB;
+  }
+
+  .btn-cancel:hover {
+    background-color: #D1D5DB;
+    border-color: #9CA3AF;
+  }
+
+  .btn-cancel:active {
+    background-color: #BDBEC3;
+  }
+
+  /* New container and form styles for wider dashboard layout */
+  .container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 16px;
+  }
+
+  .form-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,255,0.96));
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(3,10,34,0.06);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-field.full-width { grid-column: 1 / -1; }
+
+  input[type=text], input[type=number], textarea, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #E6EDF7;
+    border-radius: 8px;
+    background: #FFFFFF;
+    font-size: 0.95rem;
+    color: var(--ink-900);
+  }
+
+  label { font-weight: 600; color: var(--ink-700); }
+</style>
+
+<script>
+  // Client-side validation for weight input
+  document.getElementById('weightInput').addEventListener('input', function() {
+    const weight = parseFloat(this.value);
+    const feedback = document.getElementById('weightFeedback');
+    const submitBtn = document.querySelector('.btn-create');
+
+    // Clear previous message
+    feedback.textContent = '';
+    feedback.style.display = 'none';
+    submitBtn.disabled = false;
+
+    if (this.value === '') {
+      return; // No message if empty
+    }
+
+    if (isNaN(weight)) {
+      feedback.textContent = '⚠️ กรุณากรอกตัวเลขที่ถูกต้อง';
+      feedback.style.display = 'block';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    if (weight <= 0) {
+      feedback.textContent = '⚠️ น้ำหนักต้องมากกว่า 0';
+      feedback.style.display = 'block';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    if (weight > 100) {
+      feedback.textContent = '⚠️ น้ำหนักสูงสุด 100 กิโลกรัม';
+      feedback.style.display = 'block';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    // Weight is valid
+    feedback.style.display = 'none';
+    submitBtn.disabled = false;
+  });
+
+  // Form submission validation
+  document.getElementById('createParcelForm').addEventListener('submit', function(e) {
+    const weight = parseFloat(document.getElementById('weightInput').value);
+
+    // Final backend-style check
+    if (isNaN(weight) || weight <= 0 || weight > 100) {
+      e.preventDefault();
+      alert('กรุณากรอกน้ำหนักให้ถูกต้อง (0.1 - 100 กก.)');
+      return false;
+    }
+  });
+</script>
+
+<%- include('layout-bottom') %>

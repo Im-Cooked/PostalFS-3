@@ -1,0 +1,27 @@
+    </main>
+    </div><!-- /.page-wrapper -->
+
+    <footer class="site-footer">
+      <p>&copy; 2026 Postal Delivery System. All rights reserved.</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      function confirmCancel(id) {
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'This parcel will be cancelled.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#ef4444',
+          cancelButtonColor: '#3b82f6',
+          confirmButtonText: 'Yes, cancel it',
+          cancelButtonText: 'No, keep it'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            document.getElementById('cancelForm-' + id).submit();
+          }
+        });
+      }
+    </script>
+  </body>
+  </html>

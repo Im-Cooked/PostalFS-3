@@ -1,0 +1,42 @@
+<%- include('layout-top') %>
+
+<h2>My Payments</h2>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <p style="color: red;"><%= error %></p>
+<% } %>
+
+<% if (!payments || payments.length === 0) { %>
+  <p>No payments found.</p>
+<% } else { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Payment ID</th>
+        <th>Tracking</th>
+        <th>Receiver</th>
+        <th>Cost</th>
+        <th>Status</th>
+        <th>Parcel Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% payments.forEach(p => { %>
+        <tr>
+          <td><%= p.payment_id %></td>
+          <td><%= p.tracking_number %></td>
+          <td><%= p.receiver_name %></td>
+          <td><%= p.shipping_cost %></td>
+          <td><%= p.payment_status %></td>
+          <td><%= p.parcel_status %></td>
+          <td><%= p.payment_date ? new Date(p.payment_date).toLocaleDateString() : '-' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<p><a href="/parcels/dashboard">Back to Dashboard</a></p>
+
+<%- include('layout-bottom') %>

@@ -1,0 +1,84 @@
+<%- include('layout-top') %>
+
+
+<div class="page-head">
+  <h2>Your Dashboard</h2>
+</div>
+
+
+<hr />
+
+<h3>Your Parcels</h3>
+<% if (typeof error !== 'undefined') { %>
+  <p class="error"><%= error %></p>
+<% } %>
+<% if (typeof message !== 'undefined') { %>
+  <p class="message"><%= message %></p>
+<% } %>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tracking</th>
+        <th>Receiver</th>
+        <th>Weight</th>
+        <th>Cost</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% parcels.forEach(p => { %>
+        <tr>
+          <td><%= p.parcel_id %></td>
+          <td><%= p.tracking_number %></td>
+          <td>
+            <%= p.receiver_name %>
+            <% if (p.receiver_phone) { %><br><small class="sub-text"><%= p.receiver_phone %></small><% } %>
+          </td>
+          <td><%= p.weight %></td>
+          <td><%= p.shipping_cost %></td>
+          <td>
+            <% let statusClass='';
+               switch(p.status){
+                 case 'Pending': statusClass='status-pending'; break;
+                 case 'Ready to Ship': statusClass='status-ready'; break;
+                 case 'Paid': statusClass='status-paid'; break;
+                 case 'Shipped': statusClass='status-shipped'; break;
+                 case 'Out for Delivery': statusClass='status-out-for-delivery'; break;
+                 case 'Delivered': statusClass='status-delivered'; break;
+                 case 'Cancelled': statusClass='status-cancel'; break;
+                 default: statusClass=''; break;
+               }
+            %>
+            <span class="<%= statusClass %>"><%= p.status %></span>
+          </td>
+          <td>
+            <% if (p.status === 'Delivered' && p.delivered_at) { %>
+              <small><%= p.delivered_at.split('T')[0] %></small>
+            <% } else if (p.created_at) { %>
+              <small><%= p.created_at.split('T')[0] %></small>
+            <% } else { %>
+              -
+            <% } %>
+          </td>
+          <td>
+            <a class="btn small" href="/parcels/<%= p.parcel_id %>">View</a>
+            <% if (p.status === 'Pending' && (!user || user.role !== 'admin')) { %>
+              <a class="btn success small" href="/parcels/<%= p.parcel_id %>/pay">Pay</a>
+            <% } %>
+            <% if ((p.status === 'Pending' || p.status === 'Paid') && (!user || user.role !== 'admin')) { %>
+              <form action="/parcels/<%= p.parcel_id %>/cancel" method="post" style="display:inline; background: transparent; padding: 0; border: none; margin: 0;" id="cancelForm-<%= p.parcel_id %>">
+                <button type="button" class="btn danger small" onclick="confirmCancel(<%= p.parcel_id %>);">Cancel</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('layout-bottom') %>

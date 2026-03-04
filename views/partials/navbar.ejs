@@ -1,0 +1,32 @@
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="brand">Postal Delivery System</a>
+  </div>
+
+  <% if (user && user.role === 'customer') { %>
+    <div class="nav-center">
+      <a href="/parcels/create" class="nav-link">ส่งพัสดุ</a>
+      <a href="/parcels/dashboard" class="nav-link">พัสดุของฉัน</a>
+      <a href="/parcels/payments" class="nav-link">การชำระเงิน</a>
+    </div>
+  <% } %>
+
+  <div class="nav-right">
+    <span class="welcome">ยินดีต้อนรับ, <%= user ? (user.customer_name || user.name || '') : '' %></span>
+    <a href="/logout" class="nav-link logout">ออกจากระบบ</a>
+  </div>
+</nav>
+
+<script>
+// highlight active link based on current path
+(function() {
+  const items = document.querySelectorAll('#topNav .nav-link');
+  const path = window.location.pathname;
+  items.forEach(a => {
+    const href = a.getAttribute('href');
+    if (href && (path === href || path.startsWith(href))) {
+      a.classList.add('active');
+    }
+  });
+})();
+</script>
