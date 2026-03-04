@@ -462,7 +462,17 @@ app.get('/api/admin/report', (req, res) => {
 // Get tracking history
 app.get('/api/tracking/:parcel_id', (req, res) => {
   db.all(
-    'SELECT * FROM Tracking WHERE parcel_id = ? ORDER BY timestamp DESC',
+    // NOTE: Tracking table uses update_time + description (see Database/Database.js)
+    // Return a stable shape for clients while staying compatible with the schema.
+    `SELECT
+       tracking_id,
+       parcel_id,
+       update_time AS timestamp,
+       location,
+       description AS notes
+     FROM Tracking
+     WHERE parcel_id = ?
+     ORDER BY update_time DESC`,
     [req.params.parcel_id],
     (err, tracking) => {
       if (err) return res.status(500).json({ error: 'Database error' });
@@ -473,10 +483,18 @@ app.get('/api/tracking/:parcel_id', (req, res) => {
 
 // Add tracking update
 app.post('/api/tracking', (req, res) => {
-  const { parcel_id, location, status, notes } = req.body;
+  const { parcel_id, location, status, notes, description } = req.body;
+
+  // Keep backward compatibility with older clients that send {status, notes}
+  // while the DB schema stores a single description field.
+  const finalDescription =
+    typeof description === 'string' && description.trim()
+      ? description.trim()
+      : [status, notes].filter(Boolean).join(' - ').trim();
+
   db.run(
-    'INSERT INTO Tracking (parcel_id, location, status, notes) VALUES (?, ?, ?, ?)',
-    [parcel_id, location, status, notes],
+    'INSERT INTO Tracking (parcel_id, location, description) VALUES (?, ?, ?)',
+    [parcel_id, location, finalDescription || null],
     function (err) {
       if (err) return res.status(500).json({ error: 'Database error' });
       res.json({ success: true, tracking_id: this.lastID });
